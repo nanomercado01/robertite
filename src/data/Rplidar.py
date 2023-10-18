@@ -8,14 +8,15 @@ import matplotlib.animation as animation
 
 ### TODO: Display in Thread
 
+
 class Rplidar:
-    def __init__ (self, PORT, scan_data_lock, display=False):
+    def __init__(self, scan_data_lock, PORT='/dev/ttyUSB0', display=False):
 
         self.display = display
 
         self.scan_data_lock = scan_data_lock
         self.lidar = RPLidar(PORT)
-        
+
         self.scan_data = [0.]*360
         self.iterator = self.lidar.iter_scans(1000, 5)
 
@@ -26,14 +27,15 @@ class Rplidar:
         print(health)
 
         # Start get data thread
-        self.thread_data = ThreadHandler.ThreadHandler(self.get_periodic_data, "RPlidar data acquisition thread")
+        self.thread_data = ThreadHandler.ThreadHandler(
+            self.get_periodic_data, "RPlidar data acquisition thread")
         self.thread_data.start()
         time.sleep(0.05)
-        
-    def stop_motor (self):
+
+    def stop_motor(self):
         self.lidar.stop_motor()
 
-    def get_periodic_data (self):
+    def get_periodic_data(self):
         temp_iter = next(self.iterator)
         self.scan_data_lock.acquire()
         for i in temp_iter:
@@ -53,13 +55,25 @@ class Rplidar:
                 max_distance = max([min([5000, distance]), max_distance])
                 radians = angle * pi / 180.0
                 #print("Grados: %f, Radianes: %f, Distancia: %f"%(angle,radians,distance))
-                scan_data_cartesian.append([distance * cos(radians),distance * sin(radians)])
+                scan_data_cartesian.append(
+                    [distance * cos(radians), distance * sin(radians)])
                 #print("Medicion %f %f"%(distance * cos(radians),distance * sin(radians)))
         return scan_data_cartesian
 
     def cleanup(self):
         self.thread_data.stop_thread()
         time.sleep(0.5)
-        print ("Cleanup RPlidar")
+        print("Cleanup RPlidar")
         self.lidar.stop()
         self.lidar.disconnect()
+
+    def grafico_lidar(self):
+
+        for i in self.scan_data:
+            plt.plot(i[0], i[1], 'ro')
+
+        plt.show()
+
+        rplidar.cleanup()
+
+
