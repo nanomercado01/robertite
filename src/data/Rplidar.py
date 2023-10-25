@@ -67,13 +67,13 @@ class Rplidar:
         self.lidar.stop()
         self.lidar.disconnect()
 
-    def grafico_lidar(self):
+#    def grafico_lidar(self):
 
-        for i in self.scan_data:
-            plt.plot(i[0], i[1], 'ro')
+#        for i in self.scan_data:
+#            plt.plot(i[0], i[1], 'ro')
 
-        plt.show()
+#        plt.show()
 
-        rplidar.cleanup()
+#        rplidar.cleanup()
 
 

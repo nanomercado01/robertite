@@ -1,16 +1,21 @@
 import datetime
+import json
 
-def guardar_en_archivo(dato_giro, dato_lidar):
+def save(data_giro, data_lidar):
     try:
-        fecha_actual = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        with open("datos_sensados.txt", "a") as archivo:
-            archivo.write(f"{fecha_actual},giroscopio: {dato_giro}, \n lidar: {dato_lidar} \n")
-            archivo.close()
+        timestamp = int(time.time())  # Obtenemos el timestamp actual en segundos
+        medicion = {
+            "timestamp": timestamp,  # Agregamos el timestamp a la medición
+            "dataGiro": data_giro,
+            "dataLidar": data_lidar
+        }
+        with open("datos_sensados.json", "a") as archivo:
+            json.dump({"medicion": medicion}, archivo)
+            archivo.write('\n')
     except Exception as e:
         print(f"Error al guardar en el archivo: {e}")
-        
 
-def borrar_contenido():
+def erase():
     with open("datos_sensados.txt", 'w') as archivo:
         archivo.write('')
         archivo.close()

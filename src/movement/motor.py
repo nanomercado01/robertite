@@ -37,8 +37,11 @@ class Motor():
             GPIO.output(RPi_map.CLKWA1,1) 
             
         if (pwm2 > 0):
-            GPIO.output(RPi_map.CLKWB0,0)
-            GPIO.output(RPi_map.CLKWB1,1)
-        else:
             GPIO.output(RPi_map.CLKWB0,1)
             GPIO.output(RPi_map.CLKWB1,0)
+        else:
+            GPIO.output(RPi_map.CLKWB0,0)
+            GPIO.output(RPi_map.CLKWB1,1)
+    
+    def stop(self):
+        self.avanzar(0,0)

@@ -30,7 +30,5 @@ class Encoder():
     def funcion_interrupcion(self,channel):
         if channel == 31:
             self.contador1 += 1
-            print("contador 1 = " + str(self.contador1))
         elif channel == 22:
             self.contador2 += 1
-            print("contador 2 = " + str(self.contador2))

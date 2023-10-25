@@ -14,24 +14,36 @@ from Mpu6050 import Mpu6050
 from Encoder import Encoder
 from Rplidar import Rplidar
 from motor import Motor
+from save_data import save
+
+# Desactivar las advertencias de pines GPIO en uso
+GPIO.setwarnings(False)
 
 scan_data_lock = Lock()
 
 encoder = Encoder()
 motor = Motor()
+rplidar = Rplidar(scan_data_lock)
+giro = Mpu6050()
 
-motor.avanzar()
+counter = 0
+guardado = False  # Variable para rastrear si se ha guardado
+erase()
 
-while encoder.contador1<40:
-    #print("Avanzando")
-    pass
+while encoder.contador1 <= 75 +1:
+    motor.avanzar(60, 60)
+    print(encoder.contador1)
 
-print ("terminado")
+    if encoder.contador1 % 75 == 1 and not guardado:
+        save(giro.get_accel(), rplidar.get_data())
+        print("guardado " + str(counter) + " veces")
+        counter += 1
+        guardado = True  # Marcamos que se ha guardado
 
-motor.avanzar(0,0)
-#giro = Mpu6050()
-#rplidar = Rplidar(scan_data_lock)
+    if encoder.contador1 % 75 != 1:
+        guardado = False  # Restablecemos el estado de guardado
 
-#rplidar.stop_motor()
-#rplidar.cleanup()
+print("terminado")
+
+motor.stop()
 
