@@ -1,3 +1,5 @@
+import sys
+sys.path.append('../utils')
 from rplidar import RPLidar
 import matplotlib.pyplot as plt
 import numpy as np
@@ -46,7 +48,7 @@ class Rplidar:
     def get_data(self):
         return self.scan_data
 
-    def get_data_cartesian(self):
+    def get_data_polar(self):
         scan_data_cartesian = []
         max_distance = 0  # Escalado
         for angle in range(360):
@@ -59,7 +61,25 @@ class Rplidar:
                     [distance * cos(radians), distance * sin(radians)])
                 #print("Medicion %f %f"%(distance * cos(radians),distance * sin(radians)))
         return scan_data_cartesian
-
+    
+    ''' La siguiente funcion toma los datos de una apertura determinada entre 0-360. El grado cero corresponde al semieje que va desde
+        el centro del lidar hacia el centro del motor del lidar. A partir de esa referencia podemos tomar los datos de la apertura que
+        desee.'''
+    def get_data_polar_interval(self,phi1,phi2):
+        scan_data_cartesian = []
+        max_distance = 0  # Escalado
+        for angle in range(phi1,phi2):
+            distance = self.scan_data[angle]
+            if distance > 0:                  # ignore initially ungathered data points
+                max_distance = max([min([1000, distance]), max_distance])
+                radians = angle * pi / 180.0
+                #print("Grados: %f, Radianes: %f, Distancia: %f"%(angle,radians,distance))
+                scan_data_cartesian.append(
+                    [distance * cos(radians), distance * sin(radians)])
+                #print("Medicion %f %f"%(distance * cos(radians),distance * sin(radians)))
+        return scan_data_cartesian
+        
+    
     def cleanup(self):
         self.thread_data.stop_thread()
         time.sleep(0.5)

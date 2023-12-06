@@ -79,7 +79,8 @@ class Mpu6050:
         tempC="%.2f" %tempC
         #print tempC
         return tempC
-
+    
+    
     def calibrate(self):
         x=0.
         y=0.

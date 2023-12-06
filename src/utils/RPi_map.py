@@ -6,12 +6,12 @@ ENCODER_A1 = 24
 ENCODER_B0 = 29
 ENCODER_B1 = 31
 
-PWMA = 12
+PWMA = 32
 CLKWA0 = 16
 CLKWA1 = 18
 
 PWMB = 33
-CLKWB0 = 11
+CLKWB0 = 15 #Antes era el 11 pero no queria andar
 CLKWB1 = 13
 
 

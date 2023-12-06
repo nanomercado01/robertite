@@ -1,0 +1,43 @@
+}import sys
+sys.path.append("./data/")
+sys.path.append("./utils/")
+sys.path.append("./movement/")
+
+import time
+import matplotlib.pyplot as plt
+import datetime
+
+from threading import Lock
+import RPi.GPIO as GPIO
+
+from Mpu6050 import Mpu6050
+from Encoder import Encoder
+from Rplidar import Rplidar
+from motor import Motor
+from save_data import save
+
+# Desactivar las advertencias de pines GPIO en uso
+GPIO.setwarnings(False)
+
+scan_data_lock = Lock()
+
+encoder = Encoder()
+motor = Motor()
+rplidar = Rplidar(scan_data_lock)
+giro = Mpu6050()
+
+counter = 0
+while encoder.contador1 <= 75 * 10 +1:
+    motor.avanzar(50, 50)
+    print(encoder.contador1)
+    if encoder.contador1 % 75 == 1 and guardado == False:
+        save(giro.get_accel(), rplidar.get_data())
+        print("guardado " + str(counter) + " veces")
+        counter += 1
+	guardado = True
+    
+	guardado = False
+print("terminado")
+
+motor.stop()
+
