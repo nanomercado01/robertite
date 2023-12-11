@@ -86,7 +86,7 @@ def filtro_bayesiano(counter_encoder1,lidar_info, OBSTACLES_POS):
     markerline, stemlines, baseline = plt.stem(sensor_meas,markerfmt='ro')
     plt.setp(stemlines, 'color', plt.getp(markerline,'color'))
     plt.xlim([0,OBSTACLES_POS])
-    plt.title("Modelo del sensor")
+    plt.title(r"Modelo del sensor")
     plt.ylabel("Amplitud")
     plt.xlabel("Posición medida")
 
@@ -119,8 +119,7 @@ def filtro_bayesiano(counter_encoder1,lidar_info, OBSTACLES_POS):
     #print(sum(posteriori))
     maximo = max(posteriori)
 
-    #pos_mas_prob(posteriori)
-    print("La posicion mas probable luego de la multiplicacion del sensado por el movimiento es: ",np.argmax(posteriori))
+    pos_mas_prob(posteriori)
 
     markerline, stemlines, baseline = plt.stem(posteriori,markerfmt='go')
     plt.setp(stemlines, 'color', plt.getp(markerline,'color'))
@@ -176,3 +175,32 @@ def filtro_bayesiano(counter_encoder1,lidar_info, OBSTACLES_POS):
     for i in range(len(arreglo)):
       if  arreglo[i] == maximo2:
         print(i)
+.linspace(0,N_SAMPLES,N_SAMPLES)
+        self.movement = self.movement.pdf(x)
+        self.movement /= sum(self.movement)
+
+        #print(movement)
+
+
+
+
+
+
+.linspace(0,N_SAMPLES,N_SAMPLES)
+        self.movement = self.movement.pdf(x)
+        self.movement /= sum(self.movement)
+
+        #print(movement)
+
+
+
+
+
+
+.linspace(0,N_SAMPLES,N_SAMPLES)
+        self.movement = self.movement.pdf(x)
+        self.movement /= sum(self.movement)
+
+        #print(movement)
+
+

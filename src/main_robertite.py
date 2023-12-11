@@ -16,7 +16,7 @@ from Encoder import Encoder
 from Rplidar import Rplidar
 from motor import Motor
 from save_data import save
-from filtro_bayesiano import filtro_bayesiano as filtroF
+from ClaseFiltroBayesiano import FiltroBayesiano
 
 # Desactivar las advertencias de pines GPIO en uso
 GPIO.setwarnings(False)
@@ -28,20 +28,26 @@ motor = Motor()
 rplidar = Rplidar(scan_data_lock)
 giro = Mpu6050()
 
-#Avanzo 30cm y detengo el movimiento, de ahi obtengo los datos del encoder y los mando al filtro bayesiano
+#Avanzo 30cm(120 pulsos) y detengo el movimiento, de ahi obtengo los datos del encoder y los mando al filtro bayesiano
 
 motor.avanzar(20,20)
-while encoder.contador1 < 120:
+while encoder.contador1 < 20:
     print(encoder.contador1)
 motor.stop()
-counter_contador1 = encoder.contador1
+
+fb = FiltroBayesiano(52)
+belief = fb.start()
+movement = fb.movement(20)
+convolucion = fb.convolucion(belief,movement)
 
 time.sleep(1)
-lidar_info = rplidar.get_data_polar_interval(150,210)
+datos_lidar = rplidar.get_data_polar_interval(165,195)
 time.sleep(1)
+model_sensor = fb.lidar_measure(datos_lidar)
 
-filtroF(counter_contador1,lidar_info,500) #1ero: la lectura de interruciones del encoder/ 2do: la matriz de puntos del lidar / 3ero: la distancia que hay hasta el obstaculo(dato del mapa)
+fb.multiply_mov_sens()
 
+print(fb.posteriori)
 
 #motor.rotate(20)
 
