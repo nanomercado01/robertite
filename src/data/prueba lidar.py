@@ -12,8 +12,7 @@ scan_data_lock = Lock()
 rplidar = Rplidar(scan_data_lock,'/dev/ttyUSB0', display = True)
 
 time.sleep(1)
-datos_mapa = rplidar.get_data_polar_interval(165,195)
-time.sleep(1)
+datos_mapa = rplidar.get_data_polar_interval(0,360)
 
 x_sum = 0
 y_sum = 0
@@ -30,8 +29,8 @@ print(len(datos_mapa))
 for i in datos_mapa:
     plt.plot(i[0], i[1],'ro')
 
-plt.xlim([-500,500])
-plt.ylim([-500,500])
+plt.xlim([-2000,2000])
+plt.ylim([-2000,2000])
 plt.show()
 
 rplidar.cleanup()

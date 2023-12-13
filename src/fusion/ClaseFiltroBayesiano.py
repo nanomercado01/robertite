@@ -154,3 +154,5 @@ class FiltroBayesiano():
             plt.ylabel("Amplitud")
             plt.xlabel("Posición")
             plt.show()
+        
+        return self.posteriori

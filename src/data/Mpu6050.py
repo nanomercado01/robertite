@@ -67,9 +67,9 @@ class Mpu6050:
         x = self.readMPU(self.GYRO_X)
         y = self.readMPU(self.GYRO_Y)
         z = self.readMPU(self.GYRO_Z)
-        Gx = x/131.0 - self.GxCal
-        Gy = y/131.0 - self.GyCal
-        Gz = z/131.0 - self.GzCal
+        Gx = x/16.4 - self.GxCal
+        Gy = y/16.4 - self.GyCal
+        Gz = z/16.4 - self.GzCal
         #print "X="+str(Gx)
         return [Gx,Gy,Gz]
     
@@ -106,6 +106,6 @@ class Mpu6050:
         x= x/50
         y= y/50
         z= z/50
-        self.GxCal = x/131.0
-        self.GyCal = y/131.0
-        self.GzCal = z/131.0
+        self.GxCal = x/16.4
+        self.GyCal = y/16.4
+        self.GzCal = z/16.4

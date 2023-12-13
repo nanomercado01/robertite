@@ -7,6 +7,7 @@ sys.path.append("./fusion/")
 import time
 import matplotlib.pyplot as plt
 import datetime
+import numpy as np
 
 from threading import Lock
 import RPi.GPIO as GPIO
@@ -17,6 +18,7 @@ from Rplidar import Rplidar
 from motor import Motor
 from save_data import save
 from ClaseFiltroBayesiano import FiltroBayesiano
+import numpy as np
 
 # Desactivar las advertencias de pines GPIO en uso
 GPIO.setwarnings(False)
@@ -24,68 +26,120 @@ GPIO.setwarnings(False)
 scan_data_lock = Lock()
 
 encoder = Encoder()
-motor = Motor()
-rplidar = Rplidar(scan_data_lock)
 giro = Mpu6050()
+motor = Motor(giro, encoder)
+rplidar = Rplidar(scan_data_lock)
 
-#Avanzo 30cm(120 pulsos) y detengo el movimiento, de ahi obtengo los datos del encoder y los mando al filtro bayesiano
-
-motor.avanzar(20,20)
-while encoder.contador1 < 20:
-    print(encoder.contador1)
-motor.stop()
-
-fb = FiltroBayesiano(52)
+resultlazo = []
+fb = FiltroBayesiano(160)
 belief = fb.start()
-movement = fb.movement(20)
-convolucion = fb.convolucion(belief,movement)
+'''
+def recorrer_mapa(mapa, casilla_actual, belief, vector, vuelta):
+    print("Recorriendo mapa")
+    motor.stop()
 
+    #Gira 90 grados
+    motor.rotate(-90)
+
+    #Espera a que deje de rotar
+    while motor.rotating:
+        pass
+    #Lee los datos del sensor de distancia
+    time.sleep(1)
+    datos_lidar = rplidar.get_data_polar_interval(165,195)
+    time.sleep(1)
+
+    #Analiza cuanto avanzo segun los encoders
+    movement = fb.movement(encoder.contador1)
+    encoder.contador1 = 0
+
+    #Gaussiana del encoder
+    convolucion = fb.convolucion(belief,movement)
+
+    #Gaussiana del lidar
+    model_sensor = fb.lidar_measure(datos_lidar)
+
+    #Multiplicacion de las gausianas
+    belief = fb.multiply_mov_sens()
+    
+    #Guarda el belief en el arreglo de avance
+    resultlazo.append(belief)
+
+    # Almacenar la distancia medida en el mapa
+    casilla_actual = (int(casilla_actual[0] + vector[0] * np.argmax(belief) / 10), int(casilla_actual[1] + vector[1] * np.argmax(belief) / 10))
+    mapa[casilla_actual] = 1
+    print(casilla_actual)
+    
+    # Avanzar
+    motor.avanzar(-40, -40)
+    encoder.contador1 = 0
+    while encoder.contador1 < 30 * vuelta:
+        pass
+    motor.stop()
+    
+    return casilla_actual
+# Definir el tamaño del mapa
+tamanio_mapa = 22
+mapa = np.zeros((tamanio_mapa, tamanio_mapa), dtype=int)
+casilla_actual = (tamanio_mapa // 2, tamanio_mapa // 2)
+vector = (1,1)
+vuelta = 1
+# Repetir el proceso hasta que el 60% del mapa este explorado
+
+# Inicializar el arreglo de vectores
+arreglo_vectores = np.array([[0, 1], [1, 0], [0, -1], [-1, 0]])
+with open("datos.txt", 'wb') as archivo:
+    while (mapa.sum() / mapa.size) < 0.6:
+        #Hace una medicion para cada lado e imprime el mapa
+        for i in range(4):
+            casilla_actual=recorrer_mapa(mapa, casilla_actual, belief, arreglo_vectores[i], vuelta)
+            vuelta *= 1.2
+        print(mapa)
+        np.savetxt(archivo, mapa, fmt="%d", delimiter=",")
+
+plt.xlim([0,200])
+plt.title("Distribución Resultante")
+plt.ylabel("Amplitude")
+plt.xlabel("Posición")
+plt.show()
+
+print("La posicion final del robot es: ",np.argmax(resultlazo[len(resultlazo)-1]))
+
+'''
+motor.stop()
+print("comenzando")
+
+time.sleep(4)
+datos_mapa = rplidar.get_data_polar_interval(0,360)
+with open("datos.txt", 'a') as archivo:
+    archivo.write(str(datos_mapa))
+motor.avanzar(-40,-40)
+while(encoder.contador1 < 100):
+    pass
+motor.stop()
 time.sleep(1)
-datos_lidar = rplidar.get_data_polar_interval(165,195)
-time.sleep(1)
-model_sensor = fb.lidar_measure(datos_lidar)
+datos_mapa = rplidar.get_data_polar_interval(0,360)
+with open("datos.txt", 'a') as archivo:
+    archivo.write(str(datos_mapa) + "\n")
+    archivo.write("\n 100 pulsos de encoder\n")
+for i in range(3):
+    motor.rotate(90)
+    while(motor.rotating):
+        pass
+    motor.avanzar(-40,-40)
+    encoder.contador1 = 0
+    while(encoder.contador1 < 100):
+        pass
+    motor.stop()
+    time.sleep(1)
+    datos_mapa = rplidar.get_data_polar_interval(0,360)
+    with open("datos.txt", 'a') as archivo:
+        archivo.write("\n\n\n giro de 90 grados y avance de 100 pulsos\n")
+        archivo.write(str(datos_mapa))
 
-fb.multiply_mov_sens()
-
-print(fb.posteriori)
-
-#motor.rotate(20)
-
- 
+#guardar los datos en el archivo datos.txt
+# Abrir el archivo en modo de escritura
+    # guardar el mapa
 rplidar.cleanup()
 
 
-
-
-''' ##Codigo comentado : prueba del miercoles 15/11, hace avanzar el motor, luego cambia direcciones 5 veces##
-
-counter = 0
-guardado = False  # Variable para rastrear si se ha guardado
-#erase()
-limit_pulse = 2
-while encoder.contador1 <= limit_pulse +1:
-    motor.avanzar(-20, 20)
-    print(encoder.contador1)
-
-    if encoder.contador1 % limit_pulse == 1 and not guardado:
-        save(giro.get_accel(), rplidar.get_data())
-        print("guardado " + str(counter) + " veces")
-        counter += 1
-        guardado = True  # Marcamos que se ha guardado
-
-    if encoder.contador1 % 75 != 1:
-        guardado = False  # Restablecemos el estado de guardado
-
-motor1 = 20
-motor2 = 20
-for i in range(5):
-    print("Cambio de direccion")
-    time.sleep(1)
-    motor1 *= -1
-    motor.avanzar(motor1, motor2)
-    print("Cambio de direccion")
-    time.sleep(1)
-    motor2 *= -1
-    motor.avanzar(motor1, motor2)
-print("terminado")
-'''
