@@ -89,7 +89,7 @@ class Motor():
             pass
         self.encoder.contador1 = 0
         while(self.encoder.contador1<cant_pul):
-            self.avanzar(-30,-30)
+            self.avanzar(-50,-50)
         self.stop()
         
     
@@ -98,9 +98,9 @@ class Motor():
         self.rotacion_target = orientation
         self.rotacion = 0
         if ( (self.rotacion_target - self.rotacion) < 0 ):
-            self.avanzar(50,-50)
+            self.avanzar(70,-70)
         else:
-            self.avanzar(-50,50)
+            self.avanzar(-70,70)
 
         
         self.rotating = True

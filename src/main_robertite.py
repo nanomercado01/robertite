@@ -33,8 +33,8 @@ rplidar = Rplidar(scan_data_lock)
 resultlazo = []
 fb = FiltroBayesiano(160)
 belief = fb.start()
-'''
-def recorrer_mapa(mapa, casilla_actual, belief, vector, vuelta):
+time.sleep(1)
+def recorrer_mapa(mapa, casilla_actual, belief, vector):
     print("Recorriendo mapa")
     motor.stop()
 
@@ -53,93 +53,57 @@ def recorrer_mapa(mapa, casilla_actual, belief, vector, vuelta):
     movement = fb.movement(encoder.contador1)
     encoder.contador1 = 0
 
-    #Gaussiana del encoder
-    convolucion = fb.convolucion(belief,movement)
+    #Gausiana del encoder
+    convolucion = fb.convolucion(belief,movement,True)
 
-    #Gaussiana del lidar
+    #Gausiana del lidar
     model_sensor = fb.lidar_measure(datos_lidar)
 
     #Multiplicacion de las gausianas
-    belief = fb.multiply_mov_sens()
+    belief = fb.multiply_mov_sens(True)
     
     #Guarda el belief en el arreglo de avance
     resultlazo.append(belief)
 
     # Almacenar la distancia medida en el mapa
-    casilla_actual = (int(casilla_actual[0] + vector[0] * np.argmax(belief) / 10), int(casilla_actual[1] + vector[1] * np.argmax(belief) / 10))
+    casilla_actual = (int(casilla_actual[0] + vector[0] * belief / 10), int(casilla_actual[1] + vector[1] * belief / 10))
     mapa[casilla_actual] = 1
+
     print(casilla_actual)
     
     # Avanzar
-    motor.avanzar(-40, -40)
+    motor.avanzar(-50, -50)
     encoder.contador1 = 0
-    while encoder.contador1 < 30 * vuelta:
+    while encoder.contador1 < 100:
         pass
     motor.stop()
-    
-    return casilla_actual
-# Definir el tamaño del mapa
-tamanio_mapa = 22
-mapa = np.zeros((tamanio_mapa, tamanio_mapa), dtype=int)
-casilla_actual = (tamanio_mapa // 2, tamanio_mapa // 2)
-vector = (1,1)
-vuelta = 1
-# Repetir el proceso hasta que el 60% del mapa este explorado
 
-# Inicializar el arreglo de vectores
-arreglo_vectores = np.array([[0, 1], [1, 0], [0, -1], [-1, 0]])
-with open("datos.txt", 'wb') as archivo:
-    while (mapa.sum() / mapa.size) < 0.6:
-        #Hace una medicion para cada lado e imprime el mapa
-        for i in range(4):
-            casilla_actual=recorrer_mapa(mapa, casilla_actual, belief, arreglo_vectores[i], vuelta)
-            vuelta *= 1.2
-        print(mapa)
-        np.savetxt(archivo, mapa, fmt="%d", delimiter=",")
 
-plt.xlim([0,200])
-plt.title("Distribución Resultante")
-plt.ylabel("Amplitude")
-plt.xlabel("Posición")
-plt.show()
+with open("datos2.txt", 'w') as archivo:
+    archivo.write("\nPrimer mapeo del espacio\n")
+    archivo.write(str(rplidar.get_data_polar()) + "\n\n")
 
-print("La posicion final del robot es: ",np.argmax(resultlazo[len(resultlazo)-1]))
+    def registrar_movimiento(descripcion, angulo_rotacion, pulsos_encoder):
+        archivo.write(f"{descripcion}\n")
+        motor.rotate(angulo_rotacion)
+        while motor.rotating:
+            pass
+        archivo.write(str(rplidar.get_data_polar()) + "\n\n")
+        
+        archivo.write(f"Avance de {pulsos_encoder} pulsos de encoder\n")
+        encoder.contador1 = 0
+        motor.avanzar(-70, -70)
+        while encoder.contador1 < pulsos_encoder:
+            pass
+        motor.stop()
+        archivo.write(str(rplidar.get_data_polar()) + "\n\n")
 
-'''
-motor.stop()
-print("comenzando")
+    registrar_movimiento("giro de 35 grados", -35, 150)
+    registrar_movimiento("giro de 90 grados", -90, 200)
 
-time.sleep(4)
-datos_mapa = rplidar.get_data_polar_interval(0,360)
-with open("datos.txt", 'a') as archivo:
-    archivo.write(str(datos_mapa))
-motor.avanzar(-40,-40)
-while(encoder.contador1 < 100):
-    pass
-motor.stop()
-time.sleep(1)
-datos_mapa = rplidar.get_data_polar_interval(0,360)
-with open("datos.txt", 'a') as archivo:
-    archivo.write(str(datos_mapa) + "\n")
-    archivo.write("\n 100 pulsos de encoder\n")
-for i in range(3):
-    motor.rotate(90)
-    while(motor.rotating):
-        pass
-    motor.avanzar(-40,-40)
-    encoder.contador1 = 0
-    while(encoder.contador1 < 100):
-        pass
-    motor.stop()
-    time.sleep(1)
-    datos_mapa = rplidar.get_data_polar_interval(0,360)
-    with open("datos.txt", 'a') as archivo:
-        archivo.write("\n\n\n giro de 90 grados y avance de 100 pulsos\n")
-        archivo.write(str(datos_mapa))
+    archivo.write("Fin de movimiento\n")
 
-#guardar los datos en el archivo datos.txt
-# Abrir el archivo en modo de escritura
-    # guardar el mapa
+
+
+
 rplidar.cleanup()
-
-

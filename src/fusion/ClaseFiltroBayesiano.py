@@ -13,7 +13,7 @@ from save_data import save
 
 class FiltroBayesiano():
     
-    def __init__(self, OBSTACLES_POS,posinicio=0):
+    def __init__(self,posinicio=0):
 
         """## 1. Modelo de Movimiendo
 
@@ -21,7 +21,6 @@ class FiltroBayesiano():
 
         Consideramos como suposición inicial que el robot está en la posicion 0
         """
-        self.OBSTACLES_POS = OBSTACLES_POS
         self.posinicio = posinicio
         
         self.N_SAMPLES = 200
@@ -73,7 +72,7 @@ class FiltroBayesiano():
         return self.result
     
 
-    def lidar_measure(self, lidar_info, verbose = False, plot = False):
+    def lidar_measure(self, lidar_info, obstacles_pos, verbose = False, plot = False):
         """## 2. Modelo de observación
 
         Tomamos como referencia un obstáculo en la posición X. Usamos la distribución
@@ -97,7 +96,7 @@ class FiltroBayesiano():
         # Gaussiana decribiendo el sensor
         varianza_sens = distancia_prom * 0.05 #Segun el datasheet del rplidar A1 que usamos, el error para distancia mayores a 1.5m es del 1%, para menores es del 0.5%. el rango max es de 12m.
         dato_sensado = distancia_prom #mu de la gaussiana
-        media = self.OBSTACLES_POS - dato_sensado # Uso el mapa para pasar del eje de mediciones al de posicion
+        media = obstacles_pos - dato_sensado # Uso el mapa para pasar del eje de mediciones al de posicion
         sensor_meas = norm(media,varianza_sens)
         x = np.linspace(0,len(self.result),len(self.result))
         sensor_meas = sensor_meas.pdf(x)
